@@ -85,15 +85,13 @@ input.addEventListener('change', () => {
 
 // For pressing creating image button
 createImageButton.addEventListener('click', () => {
-  
+
   // Get the box element and its dimensions
   const boxWidth = box.clientWidth;
   const boxHeight = box.clientHeight;
-  
+
   // Create a new canvas element with the same dimensions as the box
   const canvas = document.createElement('canvas');
-  canvas.width = boxWidth;
-  canvas.height = boxHeight;
 
   // Get the image inside the imageContainer
   const originalImage = document.querySelector('.image-container img');
@@ -103,6 +101,18 @@ createImageButton.addEventListener('click', () => {
   sourceImage.src = originalImage.src;
 
   sourceImage.onload = () => {
+    // Calculate the scaling factors for the original image
+    const scaleX = originalImage.naturalWidth / originalImage.clientWidth;
+    const scaleY = originalImage.naturalHeight / originalImage.clientHeight;
+
+    // Calculate the dimensions of the unscaled cropped image
+    const unscaledWidth = boxWidth * scaleX;
+    const unscaledHeight = boxHeight * scaleY;
+
+    // Set the canvas dimensions to match the unscaled cropped image dimensions
+    canvas.width = unscaledWidth;
+    canvas.height = unscaledHeight;
+
     // Copy the contents of the box onto the canvas
     const ctx = canvas.getContext('2d');
 
@@ -112,10 +122,7 @@ createImageButton.addEventListener('click', () => {
     const xOffset = boxPosition.x - imageContainerPosition.x + 5;
     const yOffset = boxPosition.y - imageContainerPosition.y + 5;
 
-    const scaleX = originalImage.naturalWidth / originalImage.clientWidth;
-    const scaleY = originalImage.naturalHeight / originalImage.clientHeight;
-    
-    ctx.drawImage(sourceImage, xOffset * scaleX, yOffset * scaleY, boxWidth * scaleX, boxHeight * scaleY, 0, 0, boxWidth, boxHeight);
+    ctx.drawImage(sourceImage, xOffset * scaleX, yOffset * scaleY, unscaledWidth, unscaledHeight, 0, 0, unscaledWidth, unscaledHeight);
 
     // Convert the canvas to a data URL representing the image
     const dataURL = canvas.toDataURL();
@@ -129,6 +136,7 @@ createImageButton.addEventListener('click', () => {
     mainContainer.appendChild(img);
   };
 });
+
 
 // For dragging
 box.addEventListener('mousedown', startDragging);
