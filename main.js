@@ -26,6 +26,7 @@ input.addEventListener('change', () => {
   const editor = document.getElementById('editor');
   const imageContainer = document.querySelector('.image-container');
   const box = document.querySelector('.box');
+  const createImageButton = document.querySelector('#create-image-button')
 
   // Get the first file from the input element
   const file = input.files[0];
@@ -51,6 +52,7 @@ input.addEventListener('change', () => {
     img.onload = () => {
       editor.style.visibility = "visible";
       box.style.visibility = "visible";
+      createImageButton.style.visibility = "visible";
 
       // Calculate the maximum width for the image, considering the available screen size
       const maxWidth = window.innerWidth * 0.8;
