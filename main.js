@@ -2,6 +2,7 @@
 const input = document.getElementById('imageUpload');
 const resizeHandle = document.createElement('div');
 const createImageButton = document.getElementById('create-image-button');
+
 let box = document.querySelector('.box');
 let editor = document.getElementById('editor');
 
@@ -18,14 +19,14 @@ let boxHeight = 0;
 resizeHandle.classList.add('resize-handle');
 box.appendChild(resizeHandle);
 
-// Listen for changes to the input element
+// For changing the image
 input.addEventListener('change', () => {
 
   // Get the elements of the page
   const editor = document.getElementById('editor');
   const imageContainer = document.querySelector('.image-container');
   const box = document.querySelector('.box');
-  
+
   // Get the first file from the input element
   const file = input.files[0];
 
@@ -34,6 +35,7 @@ input.addEventListener('change', () => {
 
   // Define the onload function for the FileReader object
   reader.onload = () => {
+
     // Create a new image element
     let img = document.createElement('img');
 
@@ -47,15 +49,33 @@ input.addEventListener('change', () => {
     imageContainer.appendChild(img);
 
     img.onload = () => {
+      editor.style.visibility = "visible";
+      box.style.visibility = "visible";
+
+      // Calculate the maximum width for the image, considering the available screen size
+      const maxWidth = window.innerWidth * 0.8;
+  
+      // Calculate the scaling factor based on the maximum width
+      const scaleFactor = maxWidth / img.width;
+  
+      // Scale the image width and height
+      const scaledWidth = img.width * scaleFactor;
+      const scaledHeight = img.height * scaleFactor;
+
+      // Set the width and height attributes of the img element to the new scaled dimensions
+      img.width = scaledWidth;
+      img.height = scaledHeight;
+  
       // Set the width and height of the image container and editor to match the uploaded image size
-      editor.style.width = `${img.width+10}px`;
-      editor.style.height = `${img.height+10}px`;
-      imageContainer.style.width = `${img.width}px`;
-      imageContainer.style.height = `${img.height}px`;
-      box.style.width = `${img.width}px`;
+      editor.style.width = `${scaledWidth + 9}px`;
+      editor.style.height = `${scaledHeight + 10}px`;
+
+      imageContainer.style.width = `${scaledWidth-1}px`;
+      imageContainer.style.height = `${scaledHeight}px`;
+
+      box.style.width = `${scaledWidth-1}px`;
       box.style.top = img.top;
       box.style.left = img.left;
-      console.log(img.width, img.height, imageContainer.style.width, imageContainer.style.height)
     }
   };
 
@@ -63,15 +83,7 @@ input.addEventListener('change', () => {
   reader.readAsDataURL(file);
 });
 
-box.addEventListener('mousedown', (event) => {
-  if (!isResizing) {
-    isDragging = true;
-    startY = event.clientY;
-    boxTop = parseInt(window.getComputedStyle(box).top, 10);
-  }
-});
-
-// Listen for clicks on the "Create Image" button
+// For pressing creating image button
 createImageButton.addEventListener('click', () => {
   
   // Get the box element and its dimensions
@@ -89,38 +101,73 @@ createImageButton.addEventListener('click', () => {
   // Create a new image with the same source as the image inside the imageContainer
   const sourceImage = new Image();
   sourceImage.src = originalImage.src;
+
   sourceImage.onload = () => {
     // Copy the contents of the box onto the canvas
     const ctx = canvas.getContext('2d');
+
     const boxPosition = box.getBoundingClientRect();
     const imageContainerPosition = originalImage.getBoundingClientRect();
-    const xOffset = boxPosition.x - imageContainerPosition.x;
-    const yOffset = boxPosition.y - imageContainerPosition.y;
-    ctx.drawImage(sourceImage, xOffset, yOffset, boxWidth, boxHeight, 0, 0, boxWidth, boxHeight);
+
+    const xOffset = boxPosition.x - imageContainerPosition.x + 5;
+    const yOffset = boxPosition.y - imageContainerPosition.y + 5;
+
+    const scaleX = originalImage.naturalWidth / originalImage.clientWidth;
+    const scaleY = originalImage.naturalHeight / originalImage.clientHeight;
     
+    ctx.drawImage(sourceImage, xOffset * scaleX, yOffset * scaleY, boxWidth * scaleX, boxHeight * scaleY, 0, 0, boxWidth, boxHeight);
+
     // Convert the canvas to a data URL representing the image
     const dataURL = canvas.toDataURL();
-    
+
     // Create a new image element with the data URL as the source
     const img = document.createElement('img');
     img.src = dataURL;
-    
+
     // Add the new image element to the page
     const mainContainer = document.getElementById('main-container');
     mainContainer.appendChild(img);
   };
 });
 
-resizeHandle.addEventListener('mousedown', (event) => {
-  isResizing = true;
-  startHeight = event.clientY;
-  boxHeight = box.clientHeight;
-});
+// For dragging
+box.addEventListener('mousedown', startDragging);
+box.addEventListener('touchstart', startDragging);
 
-document.addEventListener('mousemove', (event) => {
+// For resizing
+resizeHandle.addEventListener('mousedown', startResizing);
+resizeHandle.addEventListener('touchstart', startResizing);
+
+// For moving and resizing
+document.addEventListener('mousemove', updateBoxPosition);
+document.addEventListener('touchmove', updateBoxPosition);
+
+// For stopping moving and resizing
+document.addEventListener('mouseup', stopActions);
+document.addEventListener('touchend', stopActions);
+
+function startDragging(event) {
+  if (!isResizing) {
+    isDragging = true;
+    startY = event.clientY || event.touches[0].clientY;
+    boxTop = parseInt(window.getComputedStyle(box).top, 10);
+  }
+}
+
+function startResizing(event) {
+  isResizing = true;
+  startHeight = event.clientY || event.touches[0].clientY;
+  boxHeight = box.clientHeight;
+}
+
+function updateBoxPosition(event) {
+  event.preventDefault(); // Prevent default touch actions like scrolling
+
+  const clientY = event.clientY || event.touches[0].clientY;
+  
   if (isDragging) {
     // Calculate the new top position of the box
-    const newTop = boxTop + (event.clientY - startY);
+    const newTop = boxTop + (clientY - startY);
 
     // Get the height of the editor and the box
     const editorHeight = editor.clientHeight-10;
@@ -137,7 +184,7 @@ document.addEventListener('mousemove', (event) => {
 
   if (isResizing) {
     // Calculate the new height of the box
-    const newHeight = boxHeight + (event.clientY - startHeight);
+    const newHeight = boxHeight + (clientY - startHeight);
 
     // Get the height of the editor
     const editorHeight = editor.clientHeight-10;
@@ -150,11 +197,15 @@ document.addEventListener('mousemove', (event) => {
     // Update the height of the box
     box.style.height = `${constrainedHeight}px`;
   }
-});
+}
 
-document.addEventListener('mouseup', () => {
-  if (isDragging)
-    isDragging = false;
-  if (isResizing)
-    isResizing = false;
-});
+function stopActions() {
+  if (isDragging) isDragging = false;
+  if (isResizing) isResizing = false;
+}
+
+document.addEventListener('touchmove', (event) => {
+  if (isDragging || isResizing) {
+    event.preventDefault();
+  }
+}, { passive: false });

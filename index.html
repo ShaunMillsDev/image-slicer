@@ -1,12 +1,15 @@
 <html lang="en">
     <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
         <link rel="stylesheet" type="text/css" href="stylesheet.css">
     </head>
     <body>
         <div id="main-container">
             <div id="upload-container">
-                <input type="file" id="imageUpload">
-                <button id="create-image-button">Create Image Slice</button>
+                <label for="imageUpload" class="button">Choose Image</label>
+                <input type="file" id="imageUpload" style="display: none;">
+
+                <button class="button" id="create-image-button">Crop Selection</button>
             </div>
 
             <div id="editor">
