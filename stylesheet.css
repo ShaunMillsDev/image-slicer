@@ -1,0 +1,41 @@
+/* contains all elements on the page */
+#main-container {
+  margin: 50px;
+  padding: 10px;
+}
+
+/* contains the upload button */
+#upload-container {
+  margin-bottom: 10px;
+}
+
+/* contains the image and box */
+#editor {
+  background-color: turquoise;
+
+  /* border: solid green 5px; */
+  position: relative
+}
+
+/* contains the image */
+.image-container {
+  border: solid rgb(104, 104, 104) 5px;
+  position: absolute;
+}
+
+.box {
+  border: solid red 5px;
+  position: absolute;
+  height: 150px;
+}
+
+.resize-handle {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 20px;
+  height: 20px;
+  background-color: lightblue;
+  border: solid 1px black;
+  cursor: ns-resize;
+}
